@@ -1,71 +1,270 @@
+import styled from 'styled-components'
+
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import { useState, ChangeEventHandler, useRef } from 'react'
+import ContentEditable, { ContentEditableEvent } from 'react-contenteditable'
+import domtoimage from 'dom-to-image'
+
+interface TitleContainerProps {
+  fontSize: number
+  strokeColor: string
+  strokeSize: number
+  textFillColor: string
+  backgroundColor?: string
+}
+
+const Container = styled.div<{ backgroundColor: string }>`
+  min-height: 100vh;
+  padding: 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: ${({ backgroundColor }) => backgroundColor};
+`
+
+const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
+  style: {
+    fontSize: props.fontSize + 'px',
+    WebkitTextStroke: `${props.strokeSize}px ${props.strokeColor}`,
+    WebkitTextFillColor: props.textFillColor,
+  },
+}))<TitleContainerProps>`
+  div {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+
+    background-color: ${({ backgroundColor }) => backgroundColor};
+    &:focus {
+      outline: 0;
+      box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+    }
+  }
+`
+
+const Controls = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`
+
+const Control = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+`
+
+const NumberInput = styled.input`
+  width: 100px;
+  padding: 10px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  font-size: 16px;
+
+  &:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgb(13 110 253 / 25%);
+  }
+`
+
+const ColorInput = styled.input`
+  height: 40px;
+  padding: 5px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  background-color: white;
+`
+
+const Label = styled.label`
+  margin-right: 10px;
+`
+
+const Button = styled.button`
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #ffffff;
+  border-radius: 0.25rem;
+  border: 1px solid lightgray;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 16px;
+  color: #6c757d;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+
+  &:hover {
+    background-color: lightgray;
+    color: #ffffff;
+  }
+`
+
+const Checkbox = styled.input``
 
 const Home: NextPage = () => {
+  const titlePlaceholder = 'Title placeholder'
+  const [text, setText] = useState<string>(titlePlaceholder)
+  const [fontSize, setFontSize] = useState<number>(40)
+  const [strokeSize, setStrokeSize] = useState<number>(2)
+  const [backgroundColor, setBackgroundColor] = useState<string>('#ffffff')
+  const [strokeColor, setStrokeColor] = useState<string>('#ee5252')
+  const [textFillColor, setTextFillColor] = useState<string>('#000000')
+  const [textBackgroundColor, setTextBackgroundColor] = useState<string | undefined>(undefined)
+  const [downloadWithTransparentBackground, setDownloadWithTransparentBackground] =
+    useState<boolean>(false)
+  const ref = useRef(null)
+
+  const handleChange = (e: ContentEditableEvent) => {
+    setText(e.target.value)
+  }
+
+  const handleClick = () => {
+    if (!downloadWithTransparentBackground) {
+      setTextBackgroundColor('#ffffff')
+    }
+
+    // requestAnimationFrame ensures the code runs after text background color is changed
+    // to avoid race conditions
+    requestAnimationFrame(() => {
+      if (!ref.current) {
+        alert('Cannot find the block to save as an image!')
+        return
+      }
+      domtoimage
+        .toPng(ref.current)
+        .then((dataUrl) => {
+          const n = document.createElement('a')
+          n.download = 'my-image-name.png'
+          n.href = dataUrl
+          n.click()
+
+          setTextBackgroundColor(undefined)
+        })
+        .catch((error) => {
+          alert('Cannot create an image')
+          console.error('oops, something went wrong!', error)
+        })
+    })
+  }
+
+  const handleChangeFontSize: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const value = parseInt(e.target.value, 10)
+
+    if (!value) {
+      setFontSize(1)
+    } else {
+      setFontSize(value)
+    }
+  }
+
+  const handleChangeStrokeSize: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setStrokeSize(parseFloat(e.target.value))
+  }
+
+  const handleChangeBackgroundColor: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setBackgroundColor(e.target.value)
+  }
+
+  const handleChangeStrokeColor: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setStrokeColor(e.target.value)
+  }
+
+  const handleChangeTextFillColor: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setTextFillColor(e.target.value)
+  }
+
+  const handleDownloadWithTransparentBackground = () => {
+    setDownloadWithTransparentBackground(!downloadWithTransparentBackground)
+  }
+
   return (
-    <div className={styles.container}>
+    <Container backgroundColor={backgroundColor}>
       <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
+        <title>Image Creator</title>
+        <meta name="description" content="Application for creating text png images" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <main>
+        <TitleContainer
+          ref={ref}
+          fontSize={fontSize}
+          strokeColor={strokeColor}
+          strokeSize={strokeSize}
+          textFillColor={textFillColor}
+          backgroundColor={textBackgroundColor}
         >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
-    </div>
+          <ContentEditable html={text} disabled={false} onChange={handleChange} />
+        </TitleContainer>
+        <Controls>
+          <Control>
+            <Label htmlFor="fontSize">Font size</Label>
+            <NumberInput
+              name="fontSize"
+              type="number"
+              inputMode="decimal"
+              value={fontSize}
+              onChange={handleChangeFontSize}
+              min={1}
+            />
+          </Control>
+          <Control>
+            <Label htmlFor="backgroundColor">Background color</Label>
+            <ColorInput
+              name="backgroundColor"
+              type="color"
+              value={backgroundColor}
+              onChange={handleChangeBackgroundColor}
+            />
+          </Control>
+          <Control>
+            <Label htmlFor="strokeSize">Stroke size</Label>
+            <NumberInput
+              name="strokeSize"
+              type="number"
+              step={0.1}
+              inputMode="decimal"
+              value={strokeSize}
+              onChange={handleChangeStrokeSize}
+              min={1}
+            />
+          </Control>
+          <Control>
+            <Label htmlFor="strokeColor">Stroke color</Label>
+            <ColorInput
+              name="strokeColor"
+              type="color"
+              value={strokeColor}
+              onChange={handleChangeStrokeColor}
+            />
+          </Control>
+          <Control>
+            <Label htmlFor="textFillColor">Text fill color</Label>
+            <ColorInput
+              name="textFillColor"
+              type="color"
+              value={textFillColor}
+              onChange={handleChangeTextFillColor}
+            />
+          </Control>
+          <Control>
+            <Label htmlFor="transparentBackground">Download with transparent background </Label>
+            <Checkbox
+              type="checkbox"
+              id="transparentBackground"
+              onChange={handleDownloadWithTransparentBackground}
+            />
+          </Control>
+
+          <Button onClick={handleClick}>Download</Button>
+        </Controls>
+      </main>
+    </Container>
   )
 }
 
