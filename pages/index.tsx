@@ -32,19 +32,33 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
     WebkitTextFillColor: props.textFillColor,
   },
 }))<TitleContainerProps>`
-  div {
-    margin-bottom: 15px;
-    padding: 15px;
+  position: relative;
+  margin-bottom: 40px;
+
+  .editableContent {
+    position: relative;
+    padding: 0 15px;
     border-radius: 5px;
     font-weight: bold;
     text-align: center;
+    z-index: 1;
 
-    background-color: ${({ backgroundColor }) => backgroundColor};
     &:focus {
       outline: 0;
-      box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
     }
   }
+`
+
+const Rectangle = styled.div<{ backgroundColor: string; borderColor: string }>`
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 50px;
+  border-radius: 10px;
+  background-color: ${({ backgroundColor }) => backgroundColor};
+  border-width: 4px;
+  border-style: solid;
+  border-color: ${({ borderColor }) => borderColor};
 `
 
 const Controls = styled.div`
@@ -105,19 +119,16 @@ const Button = styled.button`
   }
 `
 
-const Checkbox = styled.input``
-
 const Home: NextPage = () => {
   const titlePlaceholder = 'Title placeholder'
   const [text, setText] = useState<string>(titlePlaceholder)
   const [fontSize, setFontSize] = useState<number>(40)
   const [strokeSize, setStrokeSize] = useState<number>(2)
-  const [backgroundColor, setBackgroundColor] = useState<string>('#ffffff')
-  const [strokeColor, setStrokeColor] = useState<string>('#ee5252')
+  const [backgroundColor, setBackgroundColor] = useState<string>('#d9d9d9')
+  const [strokeColor, setStrokeColor] = useState<string>('#ffffff')
   const [textFillColor, setTextFillColor] = useState<string>('#000000')
-  const [textBackgroundColor, setTextBackgroundColor] = useState<string | undefined>(undefined)
-  const [downloadWithTransparentBackground, setDownloadWithTransparentBackground] =
-    useState<boolean>(false)
+  const [rectBackgroundColor, setRectBackgroundColor] = useState<string>('#ffbb00')
+  const [rectBorderColor, setRectBorderColor] = useState<string>('#ffffff')
   const ref = useRef(null)
 
   const handleChange = (e: ContentEditableEvent) => {
@@ -125,10 +136,6 @@ const Home: NextPage = () => {
   }
 
   const handleClick = () => {
-    if (!downloadWithTransparentBackground) {
-      setTextBackgroundColor('#ffffff')
-    }
-
     // requestAnimationFrame ensures the code runs after text background color is changed
     // to avoid race conditions
     requestAnimationFrame(() => {
@@ -143,8 +150,6 @@ const Home: NextPage = () => {
           n.download = 'my-image-name.png'
           n.href = dataUrl
           n.click()
-
-          setTextBackgroundColor(undefined)
         })
         .catch((error) => {
           alert('Cannot create an image')
@@ -179,8 +184,12 @@ const Home: NextPage = () => {
     setTextFillColor(e.target.value)
   }
 
-  const handleDownloadWithTransparentBackground = () => {
-    setDownloadWithTransparentBackground(!downloadWithTransparentBackground)
+  const handleChangeRectBackgroundColor: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setRectBackgroundColor(e.target.value)
+  }
+
+  const handleChangeRectBorderColor: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setRectBorderColor(e.target.value)
   }
 
   return (
@@ -197,9 +206,14 @@ const Home: NextPage = () => {
           strokeColor={strokeColor}
           strokeSize={strokeSize}
           textFillColor={textFillColor}
-          backgroundColor={textBackgroundColor}
         >
-          <ContentEditable html={text} disabled={false} onChange={handleChange} />
+          <ContentEditable
+            className="editableContent"
+            html={text}
+            disabled={false}
+            onChange={handleChange}
+          />
+          <Rectangle backgroundColor={rectBackgroundColor} borderColor={rectBorderColor} />
         </TitleContainer>
         <Controls>
           <Control>
@@ -253,14 +267,23 @@ const Home: NextPage = () => {
             />
           </Control>
           <Control>
-            <Label htmlFor="transparentBackground">Download with transparent background </Label>
-            <Checkbox
-              type="checkbox"
-              id="transparentBackground"
-              onChange={handleDownloadWithTransparentBackground}
+            <Label htmlFor="rectBackgroundColor">Rectangle background color</Label>
+            <ColorInput
+              name="rectBackgroundColor"
+              type="color"
+              value={rectBackgroundColor}
+              onChange={handleChangeRectBackgroundColor}
             />
           </Control>
-
+          <Control>
+            <Label htmlFor="rectBorderColor">Rectangle border color</Label>
+            <ColorInput
+              name="rectBorderColor"
+              type="color"
+              value={rectBorderColor}
+              onChange={handleChangeRectBorderColor}
+            />
+          </Control>
           <Button onClick={handleClick}>Download</Button>
         </Controls>
       </main>
