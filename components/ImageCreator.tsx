@@ -49,6 +49,15 @@ const InnerContainer = styled.div`
   text-align: center;
 `
 
+const Main = styled.div`
+  width: 85%;
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+`
+
 const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
   style: {
     fontSize: props.fontSize + 'px',
@@ -63,7 +72,7 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
 
   .editableContent {
     position: relative;
-    padding: 0 15px;
+    padding: 0 30px;
     border-radius: 5px;
     font-weight: bold;
     text-align: center;
@@ -91,6 +100,7 @@ const Rectangle = styled.div<RectangleProps>`
 const Buttons = styled.div`
   display: flex;
   justify-content: center;
+  margin-top: 20px;
 `
 
 const Controls = styled.div`
@@ -105,8 +115,8 @@ const ControlsColumn = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: self-start;
-  margin-right: 10px;
-  margin-left: 10px;
+  margin-right: 50px;
+  margin-left: 50px;
 `
 
 const Control = styled.div`
@@ -395,7 +405,7 @@ const ImageCreator = () => {
         <meta name="description" content="Application for creating text png images" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
+      <Main>
         <ScrollContainer ref={ref}>
           <InnerContainer>
             <TitleContainer
@@ -548,7 +558,7 @@ const ImageCreator = () => {
           <Button onClick={() => setOpenExportModal(!openExportModal)}>Export settings</Button>
           <Button onClick={() => setOpenImportModal(!openImportModal)}>Import settings</Button>
         </Buttons>
-      </main>
+      </Main>
       <Modal
         isOpen={openExportModal}
         onClose={() => setOpenExportModal(false)}
