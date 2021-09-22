@@ -23,6 +23,7 @@
     "@types/react-select": "^4.0.17",
     "@types/styled-components": "^5.1.14",
     "@types/webfontloader": "^1.6.33",
+    "babel-plugin-styled-components": "^1.13.2",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
     "prettier": "^2.4.1",

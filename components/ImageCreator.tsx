@@ -35,8 +35,9 @@ interface RectangleProps {
 
 const Container = styled.div<{ backgroundColor: string }>`
   min-height: 100vh;
+  min-width: 100%;
   padding: 0 0.5rem;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -45,14 +46,12 @@ const Container = styled.div<{ backgroundColor: string }>`
 `
 
 const InnerContainer = styled.div`
-  max-height: 150px;
   text-align: center;
 `
 
 const Main = styled.div`
-  width: 85%;
   height: 70%;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
@@ -152,11 +151,6 @@ const Label = styled.label`
   margin-right: 10px;
 `
 
-const ScrollContainer = styled.div`
-  max-width: 100vw;
-  overflow: scroll;
-`
-
 const customSelectStyles: StylesConfig<any, false, any> = {
   container: (provided) => ({
     ...provided,
@@ -214,6 +208,10 @@ const ImageCreator = () => {
       })
     }
   }, [fontFamily])
+
+  useEffect(() => {
+    document.body.style.backgroundColor = backgroundColor
+  }, [backgroundColor])
 
   const handleChange = (e: ContentEditableEvent) => {
     setText(e.target.value)
@@ -406,31 +404,31 @@ const ImageCreator = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Main>
-        <ScrollContainer ref={ref}>
-          <InnerContainer>
-            <TitleContainer
-              fontSize={fontSize}
-              fontFamily={fontFamily}
-              strokeColor={strokeColor}
-              strokeSize={strokeSize}
-              textFillColor={textFillColor}
-            >
-              <ContentEditable
-                className="editableContent"
-                html={text}
-                disabled={false}
-                onChange={handleChange}
-              />
-              <Rectangle
-                backgroundColor={rectBackgroundColor}
-                borderColor={rectBorderColor}
-                borderWidth={rectBorderWidth}
-                borderRadius={rectBorderRadius}
-                height={fontSize}
-              />
-            </TitleContainer>
-          </InnerContainer>
-        </ScrollContainer>
+        {/*<ScrollContainer ref={ref}>*/}
+        <InnerContainer ref={ref}>
+          <TitleContainer
+            fontSize={fontSize}
+            fontFamily={fontFamily}
+            strokeColor={strokeColor}
+            strokeSize={strokeSize}
+            textFillColor={textFillColor}
+          >
+            <ContentEditable
+              className="editableContent"
+              html={text}
+              disabled={false}
+              onChange={handleChange}
+            />
+            <Rectangle
+              backgroundColor={rectBackgroundColor}
+              borderColor={rectBorderColor}
+              borderWidth={rectBorderWidth}
+              borderRadius={rectBorderRadius}
+              height={fontSize}
+            />
+          </TitleContainer>
+        </InnerContainer>
+        {/*</ScrollContainer>*/}
 
         <Controls>
           <ControlsColumn>
