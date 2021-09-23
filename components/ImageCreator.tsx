@@ -31,6 +31,7 @@ interface RectangleProps {
   backgroundColor: string
   borderColor: string
   height: number
+  rectanglePosition: number
 }
 
 const Container = styled.div<{ backgroundColor: string }>`
@@ -86,7 +87,7 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
 
 const Rectangle = styled.div<RectangleProps>`
   position: relative;
-  transform: translateY(-50%);
+  transform: ${({ rectanglePosition }) => `translateY(${rectanglePosition}%)`};
   width: 100%;
   height: ${({ height }) => height + 'px'};
   border-radius: ${({ borderRadius }) => borderRadius + 'px'};
@@ -180,7 +181,7 @@ const ImageCreator = () => {
     'downloadResizePercentage',
     100,
   )
-
+  const [rectanglePosition, setRectanglePosition] = useLocalStorage('rectanglePosition', -50)
   const ref = useRef<HTMLDivElement>(null)
 
   const currentSettings = {
@@ -196,6 +197,7 @@ const ImageCreator = () => {
     rectBorderWidth: rectBorderWidth,
     rectBorderRadius: rectBorderRadius,
     downloadResizePercentage: downloadResizePercentage,
+    rectanglePosition: rectanglePosition,
   }
 
   useEffect(() => {
@@ -298,6 +300,10 @@ const ImageCreator = () => {
 
   const handleChangesDownloadResizePercentage: ChangeEventHandler<HTMLInputElement> = (e) => {
     setDownloadResizePercentage(parseInt(e.target.value))
+  }
+
+  const handleChangesRectanglePosition: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setRectanglePosition(parseInt(e.target.value))
   }
 
   const handleSettingsSave = (value: string) => {
@@ -404,7 +410,6 @@ const ImageCreator = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Main>
-        {/*<ScrollContainer ref={ref}>*/}
         <InnerContainer ref={ref}>
           <TitleContainer
             fontSize={fontSize}
@@ -425,10 +430,10 @@ const ImageCreator = () => {
               borderWidth={rectBorderWidth}
               borderRadius={rectBorderRadius}
               height={fontSize}
+              rectanglePosition={rectanglePosition}
             />
           </TitleContainer>
         </InnerContainer>
-        {/*</ScrollContainer>*/}
 
         <Controls>
           <ControlsColumn>
@@ -496,6 +501,16 @@ const ImageCreator = () => {
           </ControlsColumn>
 
           <ControlsColumn>
+            <Control>
+              <Label htmlFor="rectanglePosition">Rectangle position</Label>
+              <NumberInput
+                name="rectanglePosition"
+                type="number"
+                inputMode="decimal"
+                value={rectanglePosition}
+                onChange={handleChangesRectanglePosition}
+              />
+            </Control>
             <Control>
               <Label htmlFor="rectBackgroundColor">Rectangle background color</Label>
               <ColorInput
