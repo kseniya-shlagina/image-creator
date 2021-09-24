@@ -69,6 +69,7 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
   position: relative;
   display: inline-block;
   min-height: 50px;
+  padding: 0 4px;
 
   .editableContent {
     position: relative;
