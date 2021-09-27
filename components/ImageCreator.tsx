@@ -48,6 +48,7 @@ const Container = styled.div<{ backgroundColor: string }>`
 
 const InnerContainer = styled.div`
   text-align: center;
+  padding: 0 4px;
 `
 
 const Main = styled.div`
@@ -69,7 +70,6 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
   position: relative;
   display: inline-block;
   min-height: 50px;
-  padding: 0 4px;
 
   .editableContent {
     position: relative;
@@ -86,16 +86,19 @@ const TitleContainer = styled.div.attrs<TitleContainerProps>((props) => ({
   }
 `
 
-const Rectangle = styled.div<RectangleProps>`
-  position: relative;
-  transform: ${({ rectanglePosition }) => `translateY(${rectanglePosition}%)`};
+const Rectangle = styled.div.attrs<RectangleProps>((props) => ({
+  style: {
+    top: `${props.rectanglePosition}%`,
+    height: props.height + 'px',
+    borderRadius: props.borderRadius + 'px',
+    backgroundColor: props.backgroundColor,
+    borderWidth: props.borderWidth + 'px',
+    borderColor: props.borderColor,
+  },
+}))<RectangleProps>`
+  position: absolute;
   width: 100%;
-  height: ${({ height }) => height + 'px'};
-  border-radius: ${({ borderRadius }) => borderRadius + 'px'};
-  background-color: ${({ backgroundColor }) => backgroundColor};
-  border-width: ${({ borderWidth }) => borderWidth + 'px'};
   border-style: solid;
-  border-color: ${({ borderColor }) => borderColor};
 `
 
 const Buttons = styled.div`
@@ -106,7 +109,6 @@ const Buttons = styled.div`
 
 const Controls = styled.div`
   display: flex;
-  margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid white;
 `
@@ -184,6 +186,8 @@ const ImageCreator = () => {
   )
   const [rectanglePosition, setRectanglePosition] = useLocalStorage('rectanglePosition', -50)
   const ref = useRef<HTMLDivElement>(null)
+  const rectangleRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
 
   const currentSettings = {
     text: text,
@@ -222,7 +226,8 @@ const ImageCreator = () => {
 
   const handleClick = () => {
     const container = ref.current
-    if (!container) {
+    const rectangle = rectangleRef.current
+    if (!container || !rectangle) {
       alert('Cannot find the block to save as an image!')
       return
     }
@@ -230,12 +235,39 @@ const ImageCreator = () => {
     const originalStyles = {
       overflow: container.style.overflow,
       maxWidth: container.style.maxWidth,
+      paddingTop: container.style.paddingTop,
       paddingBottom: container.style.paddingBottom,
+      paddingLeft: container.style.paddingLeft,
+      paddingRight: container.style.paddingRight,
     }
+
     // some changes to ensure the image taken has no scrolling bars etc
     container.style.overflow = 'initial'
     container.style.maxWidth = 'initial'
-    container.style.paddingBottom = `${Math.floor(rectBorderWidth) * 2}px`
+
+    // not affected by rectangle due to absolute positioning
+    const rectangleClientRect = rectangle.getBoundingClientRect()
+    const originalRectangleDisplay = rectangle.style.display
+    rectangle.style.display = 'none'
+    const textClientRect = container.getBoundingClientRect()
+    rectangle.style.display = originalRectangleDisplay
+
+    const extraTopPadding = Math.max(0, textClientRect.top - rectangleClientRect.top)
+    container.style.paddingTop = `${extraTopPadding}px`
+
+    const extraBottomPadding = Math.max(0, rectangleClientRect.top - textClientRect.top)
+    container.style.paddingBottom = `${extraBottomPadding}px`
+
+    const returnOriginalValues = () => {
+      // return to original values
+      container.style.overflow = originalStyles.overflow
+      container.style.maxWidth = originalStyles.maxWidth
+      container.style.paddingBottom = originalStyles.paddingBottom
+      container.style.paddingTop = originalStyles.paddingTop
+      container.style.paddingLeft = originalStyles.paddingLeft
+      container.style.paddingRight = originalStyles.paddingRight
+      container.style.paddingBottom = originalStyles.paddingBottom
+    }
 
     requestAnimationFrame(() => {
       html2canvas(container, {
@@ -249,10 +281,7 @@ const ImageCreator = () => {
         document.body.appendChild(a)
         a.click()
 
-        // return to original values
-        container.style.overflow = originalStyles.overflow
-        container.style.maxWidth = originalStyles.maxWidth
-        container.style.paddingBottom = originalStyles.paddingBottom
+        returnOriginalValues()
       })
     })
   }
@@ -426,6 +455,7 @@ const ImageCreator = () => {
               onChange={handleChange}
             />
             <Rectangle
+              ref={rectangleRef}
               backgroundColor={rectBackgroundColor}
               borderColor={rectBorderColor}
               borderWidth={rectBorderWidth}
@@ -436,7 +466,7 @@ const ImageCreator = () => {
           </TitleContainer>
         </InnerContainer>
 
-        <Controls>
+        <Controls style={{ marginTop: `${((fontSize / 2) * Math.abs(rectanglePosition)) / 40}px` }}>
           <ControlsColumn>
             <Control>
               <Label htmlFor="fontSize">Font size</Label>
